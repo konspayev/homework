@@ -20,8 +20,6 @@ class MovieCell: UITableViewCell {
     private lazy var movieImage: UIImageView = {
         let image = UIImageView()
         image.translatesAutoresizingMaskIntoConstraints = false
-        image.frame.size.width = 309
-        image.frame.size.height = 424
         image.layer.masksToBounds = true
         image.layer.cornerRadius = 30
         return image
@@ -53,7 +51,7 @@ class MovieCell: UITableViewCell {
             movieStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 30),
             movieStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -30)
         ])
-    }
+    } 
 
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
