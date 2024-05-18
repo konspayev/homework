@@ -23,7 +23,7 @@ class MovieThemeCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
         setupUIViews()
         contentView.backgroundColor = .systemGray
-        contentView.layer.cornerRadius = 20
+        contentView.layer.cornerRadius = 12
         contentView.layer.masksToBounds = true
     }
     
