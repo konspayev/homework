@@ -7,35 +7,6 @@
 
 import UIKit
 
-enum Theme {
-    case popular
-    case nowPlaying
-    case upcoming
-    case topRated
-    
-    var title: String {
-        switch self {
-        case .nowPlaying: "Now Playing"
-        case .popular: "Popular"
-        case .upcoming: "Upcoming"
-        case .topRated: "Top Rated"
-        }
-    }
-    
-    var url: String {
-        switch self {
-        case .popular:
-            return "popular"
-        case .nowPlaying:
-            return "now_playing"
-        case .upcoming:
-            return "upcoming"
-        case .topRated:
-            return "top_rated"
-        }
-    }
-}
-
 class ViewController: UIViewController {
     
     private let themes: [Theme] = [.popular, .upcoming, .nowPlaying, .topRated]
@@ -176,20 +147,26 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: MovieCell.identifier, for: indexPath) as! MovieCell
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: MovieCell.identifier, for: indexPath) as? MovieCell else {
+            return UITableViewCell()
+        }
+        
         let title = movieData[indexPath.row].title
+        cell.setTitle(title: title)
+        
         let urlImageString = "https://image.tmdb.org/t/p/w500" + movieData[indexPath.row].posterPath
+        
         if let url = URL(string: urlImageString) {
             DispatchQueue.global(qos: .userInitiated).async {
-                if let data = try? Data(contentsOf: url)
-                {
+                if let data = try? Data(contentsOf: url) {
                     DispatchQueue.main.async {
-                        let movie = MovieTitle(titleLabel: title, image: UIImage(data: data))
-                        cell.conf(movie: movie)
+                        cell.setImage(image: UIImage(data: data))
                     }
                 }
             }
         }
+            
+
         return cell
     }
 

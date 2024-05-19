@@ -34,9 +34,18 @@ class MovieCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func conf(movie: MovieTitle) {
-        titleLabel.text = movie.titleLabel
-        movieImage.image = movie.image
+    func setTitle(title: String) {
+        titleLabel.text = title
+    }
+    
+    func setImage(image: UIImage?) {
+        movieImage.image = image
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        movieImage.image = nil
+        titleLabel.text = nil
     }
     
     private func setupLayout() {
