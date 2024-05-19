@@ -22,7 +22,6 @@ class MovieThemeCollectionViewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUIViews()
-        contentView.backgroundColor = .systemGray
         contentView.layer.cornerRadius = 12
         contentView.layer.masksToBounds = true
     }
@@ -39,4 +38,9 @@ class MovieThemeCollectionViewCell: UICollectionViewCell {
         labelThemeCollectionCell.trailingAnchor.constraint(equalTo: contentView.trailingAnchor).isActive = true
     }
     
+    func changeTitle(title: String, isSelected: Bool) {
+        labelThemeCollectionCell.textColor = isSelected ? .white : .black
+        contentView.backgroundColor = isSelected ? .red : .systemGray5
+        labelThemeCollectionCell.text = title
+    }
 }

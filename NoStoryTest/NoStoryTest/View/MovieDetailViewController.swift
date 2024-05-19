@@ -12,6 +12,8 @@ class MovieDetailViewController: UIViewController {
     var movieID = 0
     let urlImage = "https://image.tmdb.org/t/p/w500"
     
+    var onScreenDismiss: (() -> Void)?
+    
     lazy var scrollMovieDetail: UIScrollView = {
         let scroll = UIScrollView()
         scroll.translatesAutoresizingMaskIntoConstraints = false
@@ -58,6 +60,11 @@ class MovieDetailViewController: UIViewController {
         self.title = "Movie"
         apiRequest()
         setupLayout()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        onScreenDismiss?()
     }
     
     func apiRequest() {

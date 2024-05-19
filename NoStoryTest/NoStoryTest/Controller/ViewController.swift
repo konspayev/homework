@@ -7,9 +7,45 @@
 
 import UIKit
 
+enum Theme {
+    case popular
+    case nowPlaying
+    case upcoming
+    case topRated
+    
+    var title: String {
+        switch self {
+        case .nowPlaying: "Now Playing"
+        case .popular: "Popular"
+        case .upcoming: "Upcoming"
+        case .topRated: "Top Rated"
+        }
+    }
+    
+    var url: String {
+        switch self {
+        case .popular:
+            return "popular"
+        case .nowPlaying:
+            return "now_playing"
+        case .upcoming:
+            return "upcoming"
+        case .topRated:
+            return "top_rated"
+        }
+    }
+}
+
 class ViewController: UIViewController {
     
-    private let themes = ["Popular", "Now Playing", "Upcoming", "Top Rated"]
+    private let themes: [Theme] = [.popular, .upcoming, .nowPlaying, .topRated]
+    
+    private var currentTheme = Theme.popular {
+        didSet {
+            getThemeMovies(theme: currentTheme)
+            themeCollectionView.reloadData()
+        }
+    }
     
     private lazy var labelTheme: UILabel = {
         let label = UILabel()
@@ -31,7 +67,7 @@ class ViewController: UIViewController {
         return component
     }()
     
-    lazy var theme: UICollectionView = {
+    lazy var themeCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         
@@ -56,161 +92,59 @@ class ViewController: UIViewController {
     }()
     
     var movieData: [List] = []
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        let index = IndexPath(item: 0, section: 0)
-        collectionView(self.theme, didSelectItemAt: index)
-    }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        let index = IndexPath(item: 0, section: 0)
-        theme.selectItem(at: index, animated: false, scrollPosition: [])
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         view.addSubview(labelTheme)
-        view.addSubview(theme)
+        view.addSubview(themeCollectionView)
         view.addSubview(tableView)
         labelTheme.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
         labelTheme.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 15).isActive = true
         
-        theme.topAnchor.constraint(equalTo: labelTheme.bottomAnchor, constant: 5).isActive = true
-        theme.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10).isActive = true
-        theme.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
-        theme.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        themeCollectionView.topAnchor.constraint(equalTo: labelTheme.bottomAnchor, constant: 5).isActive = true
+        themeCollectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10).isActive = true
+        themeCollectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
+        themeCollectionView.heightAnchor.constraint(equalToConstant: 30).isActive = true
         		
-        tableView.topAnchor.constraint(equalTo: theme.bottomAnchor).isActive = true
+        tableView.topAnchor.constraint(equalTo: themeCollectionView.bottomAnchor).isActive = true
         tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor).isActive = true
         tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor).isActive = true
-        self.theme.allowsMultipleSelection = false
+        self.themeCollectionView.allowsMultipleSelection = false
+
+        getThemeMovies(theme: currentTheme)
     }
-    
-//    func apiRequest() {
-//        guard let requestUrl = urlComponent.url else { return }
-//        let task = session.dataTask(with: requestUrl) {
-//            data, response, error in
-//            guard let data = data else { return }
-//            if let movie = try? JSONDecoder().decode(Movie.self, from: data)
-//            {
-//                DispatchQueue.main.async {
-//                    self.movieData = movie.results
-//                    self.tableView.reloadData()
-//                }
-//            }
-//        }
-//        task.resume()
-//    }
 }
 
 extension ViewController {
-    func apiRequests(_ path: String) {
-        switch path {
-        case "Popular":
-            getPopular()
-        case "Now Playing":
-            getNowPlaying()
-        case "Upcoming":
-            getUpcoming()
-        case "Top Rated":
-            getTopRated()
-        default:
-            print("Error: ")
-        }
-    }
-    
-    func getPopular() {
-        self.urlComponent.path = "/3/movie/popular"
+
+    private func getThemeMovies(theme: Theme) {
+        urlComponent.path = "/3/movie/\(theme.url)"
         guard let requestUrl = urlComponent.url else { return }
 
-        self.session.dataTask(with: requestUrl) { data, response, error in
-            DispatchQueue.main.async(flags: .barrier) { [self] in
+        session.dataTask(with: requestUrl) { data, response, error in
+            DispatchQueue.main.async(flags: .barrier) { [weak self] in
                 guard let data = data, error == nil else {
+                    // TODO: error handling
                     print(data ?? "")
                     return
                 }
-                do {
-                    let response = try JSONDecoder().decode(Popular.self, from: data)
-                    self.movieData = response.results
-                    self.tableView.reloadData()
-                    return
-                } catch {
-                    return print(error)
-                }
+                self?.handleResponse(data: data)
             }
         }.resume()
     }
     
-    func getNowPlaying() {
-        self.urlComponent.path = "/3/movie/now_playing"
-
-        guard let requestUrl = self.urlComponent.url else { return }
-
-        session.dataTask(with: requestUrl) { data, response, error in
-            DispatchQueue.main.async(flags: .barrier) { [self] in
-                guard let data = data, error == nil else {
-                    return
-                }
-                do {
-                    let response = try JSONDecoder().decode(NowPlaying.self, from: data)
-                    self.movieData = response.results
-                    self.tableView.reloadData()
-                    return
-                } catch {
-                    return print(error)
-                }
-            }
-        }.resume()
+    private func handleResponse(data: Data) {
+        do {
+            let response = try JSONDecoder().decode(ThemeMovie.self, from: data)
+            movieData = response.results
+            tableView.reloadData()
+        } catch {
+            // TODO: error handling
+            return print(error)
+        }
     }
-    
-    func getUpcoming() {
-        self.urlComponent.path = "/3/movie/upcoming"
-
-        guard let requestUrl = self.urlComponent.url else { return }
-
-        session.dataTask(with: requestUrl) { data, response, error in
-            DispatchQueue.main.async(flags: .barrier) { [self] in
-                guard let data = data, error == nil else {
-                    return
-                }
-                do {
-                    let response = try JSONDecoder().decode(Upcoming.self, from: data)
-                    self.movieData = response.results
-                    self.tableView.reloadData()
-                    return
-                } catch {
-                    return print(error)
-                }
-            }
-        }.resume()
-    }
-    
-    func getTopRated() {
-        self.urlComponent.path = "/3/movie/top_rated"
-
-        guard let requestUrl = self.urlComponent.url else { return }
-
-        session.dataTask(with: requestUrl) { data, response, error in
-            DispatchQueue.main.async(flags: .barrier) { [self] in
-                guard let data = data, error == nil else {
-                    return
-                }
-                do {
-                    let response = try JSONDecoder().decode(TopRated.self, from: data)
-                    self.movieData = response.results
-                    self.tableView.reloadData()
-                    return
-                } catch {
-                    return print(error)
-                }
-            }
-        }.resume()
-    }
-    
 }
 
 extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
@@ -219,8 +153,8 @@ extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource, 
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = self.theme.dequeueReusableCell(withReuseIdentifier: MovieThemeCollectionViewCell.identifier, for: indexPath) as? MovieThemeCollectionViewCell else { return UICollectionViewCell() }
-        cell.labelThemeCollectionCell.text = themes[indexPath.row]
+        guard let cell = self.themeCollectionView.dequeueReusableCell(withReuseIdentifier: MovieThemeCollectionViewCell.identifier, for: indexPath) as? MovieThemeCollectionViewCell else { return UICollectionViewCell() }
+        cell.changeTitle(title: themes[indexPath.row].title, isSelected: themes[indexPath.row] == currentTheme)
         return cell
     }
     
@@ -229,20 +163,10 @@ extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource, 
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if let cell = collectionView.cellForItem(at: indexPath) as? MovieThemeCollectionViewCell {
-            apiRequests(cell.labelThemeCollectionCell.text ?? "")
-            cell.contentView.backgroundColor = .red
-            cell.isSelected = true
-            cell.labelThemeCollectionCell.textColor = .white
+        guard currentTheme != themes[indexPath.row] else {
+            return
         }
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
-        if let cell = collectionView.cellForItem(at: indexPath) as? MovieThemeCollectionViewCell {
-            cell.contentView.backgroundColor = .systemGray5
-            cell.isSelected = false
-            cell.labelThemeCollectionCell.textColor = .black
-        }
+        currentTheme = themes[indexPath.row]
     }
 }
 
@@ -268,10 +192,14 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
         }
         return cell
     }
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let movieDetailViewController = MovieDetailViewController()
         movieDetailViewController.movieID = movieData[indexPath.row].id
+        movieDetailViewController.onScreenDismiss = { [weak self] in
+            self?.currentTheme = .popular
+        }
         self.navigationController?.pushViewController(movieDetailViewController, animated: true)
     }
 }

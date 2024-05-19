@@ -19,8 +19,7 @@ struct Movie: Codable {
     }
 }
 
-// MARK: - Popular
-struct Popular: Codable {
+struct ThemeMovie: Codable {
     let page: Int
     let results: [List]
     let totalPages, totalResults: Int
@@ -29,47 +28,6 @@ struct Popular: Codable {
         case page, results
         case totalPages = "total_pages"
         case totalResults = "total_results"
-    }
-}
-
-// MARK: - NowPlaying
-struct NowPlaying: Codable {
-    let dates: Dates
-    let page: Int
-    let results: [List]
-    let totalPages, totalResults: Int
-
-    enum CodingKeys: String, CodingKey {
-        case dates, page, results
-        case totalPages = "total_pages"
-        case totalResults = "total_results"
-    }
-}
-
-// MARK: - Upcoming
-struct Upcoming: Codable {
-    let dates: Dates
-    let page: Int
-    let results: [List]
-    let totalPages, totalResults: Int
-
-    enum CodingKeys: String, CodingKey {
-        case dates, page, results
-        case totalPages = "total_pages"
-        case totalResults = "total_results"
-    }
-}
-
-// MARK: - TopRated
-struct TopRated: Codable {
-    let page: Int
-    let results: [List]
-    let totalPages, totalResults: Int
-
-    enum CodingKeys: String, CodingKey {
-        case page, results
-        case totalPages = "total_pages"
-        case totalResults =     "total_results"
     }
 }
 
