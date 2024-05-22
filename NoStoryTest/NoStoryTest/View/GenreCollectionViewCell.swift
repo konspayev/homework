@@ -33,7 +33,7 @@ class GenreCollectionViewCell: UICollectionViewCell {
     }
 }
 
-extension UICollectionView {
+extension GenreCollectionViewCell {
     static var identifier: String {
         return String(describing: self)
     }

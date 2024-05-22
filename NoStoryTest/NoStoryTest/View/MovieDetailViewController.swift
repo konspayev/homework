@@ -38,6 +38,14 @@ class MovieDetailViewController: UIViewController {
         return label
     }()
     
+    lazy var stackReleaseView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .vertical
+        stackView.spacing = 12
+        return stackView
+    }()
+    
     lazy var releaseDateLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -47,11 +55,32 @@ class MovieDetailViewController: UIViewController {
     }()
     
     lazy var genreCollectionView: UICollectionView = {
-        let collection = UICollectionView(frame: CGRect.zero, collectionViewLayout: UICollectionViewLayout())
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        let collection = UICollectionView(frame: CGRect.zero, collectionViewLayout: layout)
         collection.translatesAutoresizingMaskIntoConstraints = false
         collection.dataSource = self
         collection.delegate = self
+        collection.backgroundColor = .red
+        collection.register(GenreCollectionViewCell.self, forCellWithReuseIdentifier: GenreCollectionViewCell.identifier)
         return collection
+    }()
+    
+    lazy var overviewLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        label.font = UIFont.systemFont(ofSize: 36, weight: .bold)
+        label.text = "Overview"
+        return label
+    }()
+    
+    lazy var overviewText: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .right
+        label.font = UIFont.systemFont(ofSize: 10, weight: .regular)
+        return label
     }()
     
     override func viewDidLoad() {
@@ -89,6 +118,7 @@ class MovieDetailViewController: UIViewController {
                 DispatchQueue.main.async {
                     self.movieData = movie
                     self.content()
+                    self.genreCollectionView.reloadData()
                 }
             }
         }
@@ -96,20 +126,16 @@ class MovieDetailViewController: UIViewController {
     }
     
     func setupLayout() {
-        lazy var stackReleaseView: UIStackView = {
-            let stackView = UIStackView()
-            stackView.translatesAutoresizingMaskIntoConstraints = false
-            stackView.axis = .vertical
-            return stackView
-        }()
+        
+        //lazy var stackOverview:
         
         view.addSubview(scrollMovieDetail)
         scrollMovieDetail.addSubview(movieImage)
         scrollMovieDetail.addSubview(titleLabel)
         
         scrollMovieDetail.addSubview(stackReleaseView)
-        stackReleaseView.addSubview(releaseDateLabel)
-        stackReleaseView.addSubview(genreCollectionView)
+        stackReleaseView.addArrangedSubview(releaseDateLabel)
+        stackReleaseView.addArrangedSubview(genreCollectionView)
         NSLayoutConstraint.activate([
             scrollMovieDetail.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollMovieDetail.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
@@ -120,21 +146,22 @@ class MovieDetailViewController: UIViewController {
             movieImage.leadingAnchor.constraint(equalTo: scrollMovieDetail.leadingAnchor, constant: 32),
             movieImage.trailingAnchor.constraint(equalTo: scrollMovieDetail.trailingAnchor, constant: -32),
             titleLabel.topAnchor.constraint(equalTo: movieImage.bottomAnchor, constant: 17),
+            movieImage.heightAnchor.constraint(equalToConstant: 424),
+            movieImage.widthAnchor.constraint(equalToConstant: 309),
             titleLabel.leadingAnchor.constraint(equalTo: scrollMovieDetail.leadingAnchor,constant: 32),
             titleLabel.trailingAnchor.constraint(equalTo: scrollMovieDetail.trailingAnchor, constant: -32),
             stackReleaseView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor,constant: 17),
             stackReleaseView.leadingAnchor.constraint(equalTo:  scrollMovieDetail.leadingAnchor,constant: 32),
             stackReleaseView.trailingAnchor.constraint(equalTo: scrollMovieDetail.trailingAnchor, constant: -32),
-            stackReleaseView.bottomAnchor.constraint(equalTo: scrollMovieDetail.bottomAnchor, constant: -17),
-            movieImage.heightAnchor.constraint(equalToConstant: 424),
-            movieImage.widthAnchor.constraint(equalToConstant: 309)
+            stackReleaseView.bottomAnchor.constraint(equalTo: scrollMovieDetail.bottomAnchor, constant: -17)
         ])
     }
     
     func content() {
         guard let movieData = movieData else { return }
         titleLabel.text = movieData.originalTitle
-        releaseDateLabel.text = "Release Data \(movieData.releaseDate ?? "Not announced")"
+        releaseDateLabel.text = "Release Date: \(movieData.releaseDate ?? "Not announced")"
+        overviewText.text = movieData.overview
         let urlString = urlImage + movieData.posterPath!
         let url = URL(string: urlString)
         DispatchQueue.global(qos: .userInteractive).async {
@@ -148,14 +175,20 @@ class MovieDetailViewController: UIViewController {
     
 }
 
-extension MovieDetailViewController: UICollectionViewDataSource, UICollectionViewDelegate {
+extension MovieDetailViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         movieData?.genres?.count ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = UICollectionViewCell()
+        let cell = genreCollectionView.dequeueReusableCell(withReuseIdentifier: GenreCollectionViewCell.identifier, for: indexPath) as! GenreCollectionViewCell
+        guard let genre = movieData?.genres?[indexPath.row].name else { return UICollectionViewCell() }
+        cell.label.text = genre
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 60, height: 22)
     }
 }
                                     

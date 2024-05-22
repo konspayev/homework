@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class ViewController: UIViewController {
     
@@ -66,6 +67,15 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        setupViews()
+        getThemeMovies(theme: currentTheme)
+    }
+}
+
+extension ViewController {
+
+    private func setupViews() {
         view.backgroundColor = .white
         view.addSubview(labelTheme)
         view.addSubview(themeCollectionView)
@@ -77,19 +87,15 @@ class ViewController: UIViewController {
         themeCollectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10).isActive = true
         themeCollectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
         themeCollectionView.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        		
+                
         tableView.topAnchor.constraint(equalTo: themeCollectionView.bottomAnchor).isActive = true
         tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor).isActive = true
         tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor).isActive = true
         self.themeCollectionView.allowsMultipleSelection = false
 
-        getThemeMovies(theme: currentTheme)
     }
-}
-
-extension ViewController {
-
+    
     private func getThemeMovies(theme: Theme) {
         urlComponent.path = "/3/movie/\(theme.url)"
         guard let requestUrl = urlComponent.url else { return }
@@ -97,7 +103,6 @@ extension ViewController {
         session.dataTask(with: requestUrl) { data, response, error in
             DispatchQueue.main.async(flags: .barrier) { [weak self] in
                 guard let data = data, error == nil else {
-                    // TODO: error handling
                     print(data ?? "")
                     return
                 }

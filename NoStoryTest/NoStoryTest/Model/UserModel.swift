@@ -5,7 +5,6 @@
 //  Created by Nursultan Konspayev on 04.05.2024.
 //
 
-import Foundation
 import UIKit
 
 struct UserModel {
