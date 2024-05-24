@@ -6,26 +6,26 @@
 //
 
 import UIKit
+import SnapKit
 
 class GenreCollectionViewCell: UICollectionViewCell {
     lazy var label: UILabel = {
         let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
         label.textColor = .white
+        label.numberOfLines = 0
+        label.font = UIFont.systemFont(ofSize: 10, weight: .regular)
         return label
     }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
         contentView.backgroundColor = .blue
         contentView.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: contentView.topAnchor),
-            label.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            label.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
-        ])
+        label.snp.makeConstraints { make in
+            make.top.leading.trailing.bottom.equalToSuperview()
+        }
     }
     
     required init?(coder: NSCoder) {

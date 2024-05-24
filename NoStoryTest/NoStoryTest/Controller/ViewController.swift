@@ -9,26 +9,15 @@ import UIKit
 import SnapKit
 
 class ViewController: UIViewController {
-    
-    private let themes: [Theme] = [.popular, .upcoming, .nowPlaying, .topRated]
-    
-    private var currentTheme = Theme.popular {
-        didSet {
-            getThemeMovies(theme: currentTheme)
-            themeCollectionView.reloadData()
-        }
-    }
-    
+
     private lazy var labelTheme: UILabel = {
         let label = UILabel()
         label.text = "Theme"
         label.textAlignment = .left
         label.font = UIFont.preferredFont(forTextStyle: .headline)
-        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
-    let session = URLSession(configuration: .default)
     lazy var urlComponent: URLComponents = {
         var component = URLComponents()
         component.scheme = "https"
@@ -46,7 +35,6 @@ class ViewController: UIViewController {
         let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collection.delegate = self
         collection.dataSource = self
-        collection.translatesAutoresizingMaskIntoConstraints = false
         collection.register(MovieThemeCollectionViewCell.self, forCellWithReuseIdentifier: MovieThemeCollectionViewCell.identifier)
     
         return collection
@@ -56,20 +44,18 @@ class ViewController: UIViewController {
         let tableView = UITableView()
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.rowHeight = 500
         tableView.separatorStyle = .none
         tableView.register(MovieCell.self, forCellReuseIdentifier: MovieCell.identifier)
         return tableView
     }()
-    
-    var movieData: [List] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupViews()
         getThemeMovies(theme: currentTheme)
+        NetworkManager().
     }
 }
 
@@ -80,49 +66,28 @@ extension ViewController {
         view.addSubview(labelTheme)
         view.addSubview(themeCollectionView)
         view.addSubview(tableView)
-        labelTheme.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor).isActive = true
-        labelTheme.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 15).isActive = true
         
-        themeCollectionView.topAnchor.constraint(equalTo: labelTheme.bottomAnchor, constant: 5).isActive = true
-        themeCollectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10).isActive = true
-        themeCollectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10).isActive = true
-        themeCollectionView.heightAnchor.constraint(equalToConstant: 30).isActive = true
-                
-        tableView.topAnchor.constraint(equalTo: themeCollectionView.bottomAnchor).isActive = true
-        tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor).isActive = true
-        tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor).isActive = true
-        tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor).isActive = true
-        self.themeCollectionView.allowsMultipleSelection = false
-
-    }
-    
-    private func getThemeMovies(theme: Theme) {
-        urlComponent.path = "/3/movie/\(theme.url)"
-        guard let requestUrl = urlComponent.url else { return }
-
-        session.dataTask(with: requestUrl) { data, response, error in
-            DispatchQueue.main.async(flags: .barrier) { [weak self] in
-                guard let data = data, error == nil else {
-                    print(data ?? "")
-                    return
-                }
-                self?.handleResponse(data: data)
-            }
-        }.resume()
-    }
-    
-    private func handleResponse(data: Data) {
-        do {
-            let response = try JSONDecoder().decode(ThemeMovie.self, from: data)
-            movieData = response.results
-            tableView.reloadData()
-        } catch {
-            // TODO: error handling
-            return print(error)
+        labelTheme.snp.makeConstraints { make in
+            make.top.equalToSuperview()
+            make.leading.equalToSuperview().offset(15)
         }
-    }
-}
+        
+        themeCollectionView.snp.makeConstraints { make in
+            make.top.equalTo(labelTheme).offset(5)
+            make.leading.equalToSuperview().offset(10)
+            make.trailing.equalToSuperview().offset(-10)
+            make.height.equalTo(30)
+        }
+                
+        self.themeCollectionView.allowsMultipleSelection = false
+        
+        tableView.snp.makeConstraints { make in
+            make.top.equalTo(themeCollectionView)
+            make.bottom.leading.trailing.equalToSuperview()
+        }
 
+    }
+    
 extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         themes.count

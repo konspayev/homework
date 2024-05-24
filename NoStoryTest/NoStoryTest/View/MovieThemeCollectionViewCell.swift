@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class MovieThemeCollectionViewCell: UICollectionViewCell {
     
@@ -13,7 +14,6 @@ class MovieThemeCollectionViewCell: UICollectionViewCell {
     
     lazy var labelThemeCollectionCell: UILabel = {
         let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.font = UIFont.preferredFont(forTextStyle: .footnote)
         label.textAlignment = .center
         return label
@@ -32,10 +32,11 @@ class MovieThemeCollectionViewCell: UICollectionViewCell {
 //MARK: - Setup UI Views
     private func setupUIViews() {
         contentView.addSubview(labelThemeCollectionCell)
-        labelThemeCollectionCell.topAnchor.constraint(equalTo: contentView.topAnchor).isActive = true
-        labelThemeCollectionCell.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
-        labelThemeCollectionCell.leadingAnchor.constraint(equalTo: contentView.leadingAnchor).isActive = true
-        labelThemeCollectionCell.trailingAnchor.constraint(equalTo: contentView.trailingAnchor).isActive = true
+        
+        labelThemeCollectionCell.snp.makeConstraints { make in
+            make.top.leading.trailing.bottom.equalToSuperview()
+        }
+        
     }
     
     func changeTitle(title: String, isSelected: Bool) {

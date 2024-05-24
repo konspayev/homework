@@ -6,17 +6,16 @@
 //
 
 import UIKit
+import SnapKit
 
 class MovieDetailViewController: UIViewController {
     var movieData: MovieDetail?
     var movieID = 0
-    let urlImage = "https://image.tmdb.org/t/p/w500"
     
     var onScreenDismiss: (() -> Void)?
     
     lazy var scrollMovieDetail: UIScrollView = {
         let scroll = UIScrollView()
-        scroll.translatesAutoresizingMaskIntoConstraints = false
         scroll.showsHorizontalScrollIndicator = false
         scroll.showsVerticalScrollIndicator = true
         return scroll
@@ -24,14 +23,11 @@ class MovieDetailViewController: UIViewController {
     
     lazy var movieImage: UIImageView = {
         let image = UIImageView()
-        image.translatesAutoresizingMaskIntoConstraints = false
-
         return image
     }()
     
     lazy var titleLabel: UILabel = {
         let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: 48, weight: .bold)
         label.numberOfLines = 0
@@ -40,15 +36,13 @@ class MovieDetailViewController: UIViewController {
     
     lazy var stackReleaseView: UIStackView = {
         let stackView = UIStackView()
-        stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .vertical
-        stackView.spacing = 12
+        stackView.spacing = 10
         return stackView
     }()
     
     lazy var releaseDateLabel: UILabel = {
         let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .left
         label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         return label
@@ -58,17 +52,14 @@ class MovieDetailViewController: UIViewController {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         let collection = UICollectionView(frame: CGRect.zero, collectionViewLayout: layout)
-        collection.translatesAutoresizingMaskIntoConstraints = false
         collection.dataSource = self
         collection.delegate = self
-        collection.backgroundColor = .red
         collection.register(GenreCollectionViewCell.self, forCellWithReuseIdentifier: GenreCollectionViewCell.identifier)
         return collection
     }()
     
     lazy var overviewLabel: UILabel = {
         let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: 36, weight: .bold)
         label.text = "Overview"
@@ -77,7 +68,6 @@ class MovieDetailViewController: UIViewController {
     
     lazy var overviewText: UILabel = {
         let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .right
         label.font = UIFont.systemFont(ofSize: 10, weight: .regular)
         return label
@@ -88,6 +78,7 @@ class MovieDetailViewController: UIViewController {
         view.backgroundColor = .white
         self.title = "Movie"
         apiRequest()
+        setupViews()
         setupLayout()
     }
     
@@ -98,16 +89,6 @@ class MovieDetailViewController: UIViewController {
     
     func apiRequest() {
         let session = URLSession(configuration: .default)
-        lazy var urlComponent: URLComponents = {
-            var component = URLComponents()
-            component.scheme = "https"
-            component.host = "api.themoviedb.org"
-            component.path = "/3/movie/\(movieID)"
-            component.queryItems = [
-                URLQueryItem(name: "api_key", value: "ced760785529022f787ac282841dc942")
-            ]
-            return component
-        }()
         
         guard let requestUrl = urlComponent.url else { return }
         let task = session.dataTask(with: requestUrl) {
@@ -125,10 +106,7 @@ class MovieDetailViewController: UIViewController {
         task.resume()
     }
     
-    func setupLayout() {
-        
-        //lazy var stackOverview:
-        
+    private func setupViews() {
         view.addSubview(scrollMovieDetail)
         scrollMovieDetail.addSubview(movieImage)
         scrollMovieDetail.addSubview(titleLabel)
@@ -136,25 +114,51 @@ class MovieDetailViewController: UIViewController {
         scrollMovieDetail.addSubview(stackReleaseView)
         stackReleaseView.addArrangedSubview(releaseDateLabel)
         stackReleaseView.addArrangedSubview(genreCollectionView)
-        NSLayoutConstraint.activate([
-            scrollMovieDetail.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollMovieDetail.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            scrollMovieDetail.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            scrollMovieDetail.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            movieImage.topAnchor.constraint(equalTo: scrollMovieDetail.topAnchor),
-            movieImage.centerXAnchor.constraint(equalTo: scrollMovieDetail.centerXAnchor),
-            movieImage.leadingAnchor.constraint(equalTo: scrollMovieDetail.leadingAnchor, constant: 32),
-            movieImage.trailingAnchor.constraint(equalTo: scrollMovieDetail.trailingAnchor, constant: -32),
-            titleLabel.topAnchor.constraint(equalTo: movieImage.bottomAnchor, constant: 17),
-            movieImage.heightAnchor.constraint(equalToConstant: 424),
-            movieImage.widthAnchor.constraint(equalToConstant: 309),
-            titleLabel.leadingAnchor.constraint(equalTo: scrollMovieDetail.leadingAnchor,constant: 32),
-            titleLabel.trailingAnchor.constraint(equalTo: scrollMovieDetail.trailingAnchor, constant: -32),
-            stackReleaseView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor,constant: 17),
-            stackReleaseView.leadingAnchor.constraint(equalTo:  scrollMovieDetail.leadingAnchor,constant: 32),
-            stackReleaseView.trailingAnchor.constraint(equalTo: scrollMovieDetail.trailingAnchor, constant: -32),
-            stackReleaseView.bottomAnchor.constraint(equalTo: scrollMovieDetail.bottomAnchor, constant: -17)
-        ])
+    }
+    
+    private func setupLayout() {
+        scrollMovieDetail.snp.makeConstraints { make in
+            make.top.leading.trailing.bottom.equalToSuperview()
+        }
+        
+        movieImage.snp.makeConstraints { make in
+            make.top.equalTo(scrollMovieDetail.snp.top)
+            make.centerX.equalTo(scrollMovieDetail.snp.centerX)
+            make.leading.equalTo(scrollMovieDetail.snp.leading).offset(32)
+            make.trailing.equalTo(scrollMovieDetail.snp.trailing).offset(-32)
+            make.height.equalTo(424)
+            make.width.equalTo(309)
+        }
+        
+        movieImage.snp.makeConstraints { make in
+            make.top.equalTo(scrollMovieDetail.snp.top)
+            make.centerX.equalTo(scrollMovieDetail.snp.centerX)
+            make.leading.equalTo(scrollMovieDetail.snp.leading).offset(32)
+            make.trailing.equalTo(scrollMovieDetail.snp.trailing).offset(-32)
+        }
+        
+        titleLabel.snp.makeConstraints { make in
+            make.top.equalTo(movieImage.snp.bottom).inset(17)
+            make.leading.equalTo(scrollMovieDetail.snp.leading).offset(32)
+            make.trailing.equalTo(scrollMovieDetail.snp.trailing).offset(-32)
+        }
+        
+        stackReleaseView.snp.makeConstraints { make in
+            make.top.equalTo(titleLabel.snp.bottom).inset(17)
+            make.leading.equalTo(scrollMovieDetail.snp.leading).offset(32)
+            make.trailing.equalTo(scrollMovieDetail.snp.trailing).offset(-32)
+            make.bottom.equalTo(scrollMovieDetail.snp.bottom).offset(-17)
+        }
+        
+        releaseDateLabel.snp.makeConstraints { make in
+            make.leading.trailing.top.equalToSuperview()
+        }
+        
+        genreCollectionView.snp.makeConstraints { make in
+            make.leading.trailing.bottom.equalToSuperview()
+            make.top.equalTo(releaseDateLabel.snp.bottom)
+            make.height.equalTo(22)
+        }
     }
     
     func content() {
@@ -184,11 +188,13 @@ extension MovieDetailViewController: UICollectionViewDataSource, UICollectionVie
         let cell = genreCollectionView.dequeueReusableCell(withReuseIdentifier: GenreCollectionViewCell.identifier, for: indexPath) as! GenreCollectionViewCell
         guard let genre = movieData?.genres?[indexPath.row].name else { return UICollectionViewCell() }
         cell.label.text = genre
+        cell.layer.cornerRadius = 10
+        cell.layer.masksToBounds = true
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 60, height: 22)
+        return CGSize(width: 80, height: 22)
     }
 }
                                     

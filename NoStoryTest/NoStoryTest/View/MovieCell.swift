@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class MovieCell: UITableViewCell {
     
@@ -50,17 +51,20 @@ class MovieCell: UITableViewCell {
     
     private func setupLayout() {
         let movieStackView = UIStackView(arrangedSubviews: [movieImage, titleLabel])
-        movieStackView.translatesAutoresizingMaskIntoConstraints = false
+        
         movieStackView.axis = .vertical
         movieStackView.spacing = 12
+        
         contentView.addSubview(movieStackView)
-        NSLayoutConstraint.activate([
-            movieStackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
-            movieStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            movieStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 30),
-            movieStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -30)
-        ])
-    } 
+    
+        movieStackView.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(10)
+            make.bottom.equalToSuperview()
+            make.leading.equalToSuperview().offset(30)
+            make.trailing.equalToSuperview().offset(-30)
+        }
+        
+    }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
